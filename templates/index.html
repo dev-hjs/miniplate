@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+    crossorigin="anonymous"></script>
+  <title>맛집추천</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <script>
+    $(document).ready(function () {
+      listing();
+    });
+
+    function listing() {
+      $('#cards-box').empty()
+      $.ajax({
+        type: 'GET',
+        url: '/restaurant',
+        data: {},
+        success: function (response) {
+          let rows = response['restaurant']
+          for (let i = 0; i < rows.length; i++) {
+            let name = rows[i]['name']
+            let comment = rows[i]['comment']
+            let category = rows[i]['category']
+            let image = rows[i]['image']
+            let star = rows[i]['star']
+            let id = rows[i]['id']
+            let address = rows[i]['address'].split("지번")[0]
+            let address_b = rows[i]['address'].split("지번")[1]
+
+            let star_image = '⭐'.repeat(star)
+
+            let temp_html = `<div class="col">
+                                <div class="card h-100">
+                                  <img src="${image}" class="card-img-top">
+                                  <div class="card-header">
+                                    <h5 class="card-name">${name}</h5>
+                                    <p>${star_image}</p>
+                                    <div class="card-body">
+                                        <p class="detail">카테고리 : ${category}</p>
+                                        <p class="detail">한줄평 : ${comment}</p>
+                                        <p class="detail">주소 : ${address}</p>
+                                        <p class="detail">지번 : ${address_b}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>`
+            $('#cards-box').append(temp_html)
+          }
+          const details = document.querySelectorAll('.col');
+          details.forEach(function (detail) {
+            const btn = detail.querySelector('.card');
+            btn.addEventListener('click', function () {
+
+              // 아래는 다른 창이 열렸을 때 기존 창을 닫는 구문 추가
+
+              // details.forEach(function (item) {
+              //   if (item !== detail)
+              //     item.classList.remove('show-detail')
+              // })
+
+              // 다른 창이 눌리면 각 class 셀렉터 별로 1번씩 반복하여 if 구문을 실행하기 때문에 
+              //결국 click된 class를 제외하고는 if문 조건이 참이되어 .show-detail를 삭제
+
+              detail.classList.toggle('show-detail')
+
+            })
+          })
+        }
+      })
+    }
+
+    function posting() {
+      let url = $('#url').val()
+      let star = $('#star').val()
+      let comment = $('#comment').val()
+      let category = $('#category').val()
+
+      $.ajax({
+        type: 'POST',
+        url: '/restaurant',
+        data: { url_give: url, star_give: star, category_give: category, comment_give: comment },
+        success: function (response) {
+          alert(response['msg'])
+          window.location.reload()
+        }
+      });
+    }
+    function open_box() {
+      $("#post-box").toggle();
+    }
+    function close_box() {
+      $("#post-box").hide();
+    }
+  </script>
+</head>
+
+<body>
+  <div class="mytitle">
+    <h1>맛집 추천</h1>
+    <button onclick="open_box()">맛집 추가</button>
+  </div>
+  <div class="mypost" id="post-box">
+    <div class="form-floating mb-3">
+      <input id="url" type="email" class="form-control" placeholder="name@example.com" />
+      <label>맛집 URL</label>
+    </div>
+    <div class="input-group mb-3">
+      <label class="input-group-text" for="inputGroupSelect01">카테고리</label>
+      <select class="form-select" id="category">
+        <option selected>-- 선택하기 --</option>
+        <option value="양식">양식</option>
+        <option value="일식">일식</option>
+        <option value="중식">중식</option>
+        <option value="한식">한식</option>
+        <option value="디저트">디저트</option>
+        <option value="기타">기타</option>
+      </select>
+    </div>
+    <div class="input-group mb-3">
+      <label class="input-group-text" for="inputGroupSelect02">별점</label>
+      <select class="form-select" id="star">
+        <option selected>-- 선택하기 --</option>
+        <option value="1">⭐</option>
+        <option value="2">⭐⭐</option>
+        <option value="3">⭐⭐⭐</option>
+        <option value="4">⭐⭐⭐⭐</option>
+        <option value="5">⭐⭐⭐⭐⭐</option>
+      </select>
+    </div>
+    <div class="form-floating">
+      <textarea id="comment" class="form-control" placeholder="Leave a comment here"></textarea>
+      <label for="floatingTextarea2">한줄평</label>
+    </div>
+    <div class="mybtns">
+      <button onclick="posting()" type="button" class="btn btn-dark">
+        추가하기
+      </button>
+      <button onclick="close_box()" type="button" class="btn btn-outline-dark">
+        닫기
+      </button>
+    </div>
+  </div>
+  <div class="mycards">
+    <div class="row row-cols-1 row-cols-md-3 g-4" id="cards-box">
+    </div>
+</body>
+
+</html>
