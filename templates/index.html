@@ -15,8 +15,34 @@
   <title>맛집추천</title>
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
   <script>
+    var currentPage = "전체";
     $(document).ready(function () {
-      listing();
+      fetch('/restaurant')
+        .then((response) => response.json())
+        .then((data) => {
+          let rows = data['restaurant']
+          listing(rows, currentPage);
+
+          const filterBtns = document.querySelectorAll(".filter-btn");
+          //filter items
+          filterBtns.forEach(function (btn) {
+            btn.addEventListener("click", function (e) {
+              // console.log(e.currentTarget.dataset.id);
+              currentPage = e.currentTarget.dataset.id
+              const category = e.currentTarget.dataset.id;
+              const sortCategory = rows.filter(function (row) {
+                if (row.category === category) {
+                  return row;
+                }
+              });
+              if (category === '전체') {
+                listing(rows, currentPage);
+              } else {
+                listing(sortCategory, currentPage)
+              }
+            });
+          })
+        })
     });
 
 
@@ -27,49 +53,46 @@
     }
 
 
-    function listing() {
+    function listing(rows, currentPage) {
       $('#cards-box').empty();
-      fetch('/restaurant')
-        .then((response) => response.json())
-        .then((data) => {
-          let rows = data['restaurant']
-          rows.forEach((i) => {
-            let name = i['name']
-            let comment = i['comment']
-            let category = i['category']
-            let image = i['image']
-            let star = i['star']
-            let like = i['like']
-            let num = i['num']
-            let star_image = '⭐'.repeat(star)
+      rows.forEach((i) => {
+        let name = i['name']
+        let comment = i['comment']
+        let category = i['category']
+        let image = i['image']
+        let star = i['star']
+        let like = i['like']
+        let num = i['num']
+        let star_image = '⭐'.repeat(star)
+        let current = currentPage
 
-            let information = i["information"];
+        let information = i["information"];
 
-            let information_html = '';
+        let information_html = '';
 
-            information.forEach((info) => {
-              let info_html = '';
-              for (let key in info) {
-                if (info.hasOwnProperty(key)) { // 프로퍼티 존재 유무 판별 
-                  if (key === "주소") {
-                    info_html += `<p><strong>${key}: </strong>${info[key].split("지번")[0]}</p>`;
-                  } else {
-                    info_html += `<p><strong>${key}: </strong>${info[key]}</p>`;
-                  }
-                }
+        information.forEach((info) => {
+          let info_html = '';
+          for (let key in info) {
+            if (info.hasOwnProperty(key)) { // 프로퍼티 존재 유무 판별 
+              if (key === "주소") {
+                info_html += `<p><strong>${key}: </strong>${info[key].split("지번")[0]}</p>`;
+              } else {
+                info_html += `<p><strong>${key}: </strong>${info[key]}</p>`;
               }
-              information_html += info_html;
-            })
+            }
+          }
+          information_html += info_html;
+        })
 
-            let temp_html = `<div class="col" onclick="open_information()" >
+        let temp_html = `<div class="col" onclick="open_information()" >
                                 <div class="card h-100" onclick="open_information()">
                                   <img src="${image}" class="card-img-top">
                                   <div class="card-header">
                                     <h5 class="card-name">${name}</h5>
-                                    <p>${star_image}</p>
-                                    <div class="like">                                
+                                    <p style="display: inline;">${star_image}</p>
+                                    <div class="like">   
+                                      <p class="like-num">${like}</p>                             
                                       <p type="button" onclick="clickLike(${num},${like})" class="like-logo">👍</p>
-                                      <p class="like-num">${like}</p>    
                                     </div>                                    
                                   </div>
                                     <div class="card-body">
@@ -81,11 +104,9 @@
                                     </div>                                  
                                 </div>
                               </div>`
-
-            $('#cards-box').append(temp_html);
-            $('.card-footer').hide();
-          });
-        });
+        $('#cards-box').append(temp_html);
+        $('.card-footer').hide();
+      });
     }
 
 
@@ -95,7 +116,19 @@
         url: '/restaurant/like',
         data: { num_give: num, like_give: like },
         success: function (response) {
-          listing();
+          fetch('/restaurant')
+            .then((response) => response.json())
+            .then((data) => {
+              let rows = data['restaurant']
+              const sortCategory = rows.filter(function (row) {
+                if (row.category === currentPage) {
+                  return row;
+                }
+              });
+              if (currentPage === "전체") {
+                listing(rows, currentPage)
+              } else { listing(sortCategory, currentPage) }
+            })
         }
       })
     }
@@ -112,7 +145,7 @@
         data: { url_give: url, star_give: star, category_give: category, comment_give: comment },
         success: function (response) {
           alert(response['msg'])
-          window.location.reload()
+          window.location.reload();
         }
       });
     }
@@ -122,6 +155,7 @@
     function close_box() {
       $("#post-box").hide();
     }
+
   </script>
 </head>
 
@@ -170,6 +204,15 @@
         닫기
       </button>
     </div>
+  </div>
+  <div class="btn-container">
+    <button class="filter-btn" type="button" data-id="전체">전체</button>
+    <button class="filter-btn" type="button" data-id="한식">한식</button>
+    <button class="filter-btn" type="button" data-id="양식">양식</button>
+    <button class="filter-btn" type="button" data-id="중식">중식</button>
+    <button class="filter-btn" type="button" data-id="일식">일식</button>
+    <button class="filter-btn" type="button" data-id="디저트">디저트</button>
+    <button class="filter-btn" type="button" data-id="기타">기타</button>
   </div>
   <div class="mycards">
     <div class="row row-cols-1 row-cols-md-3 g-4" id="cards-box">
