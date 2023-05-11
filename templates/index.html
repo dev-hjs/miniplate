@@ -19,62 +19,83 @@
       listing();
     });
 
-    function listing() {
-      $('#cards-box').empty()
-      $.ajax({
-        type: 'GET',
-        url: '/restaurant',
-        data: {},
-        success: function (response) {
-          let rows = response['restaurant']
-          for (let i = 0; i < rows.length; i++) {
-            let name = rows[i]['name']
-            let comment = rows[i]['comment']
-            let category = rows[i]['category']
-            let image = rows[i]['image']
-            let star = rows[i]['star']
-            let id = rows[i]['id']
-            let address = rows[i]['address'].split("지번")[0]
-            let address_b = rows[i]['address'].split("지번")[1]
 
+    function open_information() {
+      $('.card').on('click', function () {
+        $(this).find('.card-footer').toggle();
+      });
+    }
+
+
+    function listing() {
+      $('#cards-box').empty();
+      fetch('/restaurant')
+        .then((response) => response.json())
+        .then((data) => {
+          let rows = data['restaurant']
+          rows.forEach((i) => {
+            let name = i['name']
+            let comment = i['comment']
+            let category = i['category']
+            let image = i['image']
+            let star = i['star']
+            let like = i['like']
+            let num = i['num']
             let star_image = '⭐'.repeat(star)
 
-            let temp_html = `<div class="col">
-                                <div class="card h-100">
+            let information = i["information"];
+
+            let information_html = '';
+
+            information.forEach((info) => {
+              let info_html = '';
+              for (let key in info) {
+                if (info.hasOwnProperty(key)) { // 프로퍼티 존재 유무 판별 
+                  if (key === "주소") {
+                    info_html += `<p><strong>${key}: </strong>${info[key].split("지번")[0]}</p>`;
+                  } else {
+                    info_html += `<p><strong>${key}: </strong>${info[key]}</p>`;
+                  }
+                }
+              }
+              information_html += info_html;
+            })
+
+            let temp_html = `<div class="col" onclick="open_information()" >
+                                <div class="card h-100" onclick="open_information()">
                                   <img src="${image}" class="card-img-top">
                                   <div class="card-header">
                                     <h5 class="card-name">${name}</h5>
                                     <p>${star_image}</p>
-                                    <div class="card-body">
-                                        <p class="detail">카테고리 : ${category}</p>
-                                        <p class="detail">한줄평 : ${comment}</p>
-                                        <p class="detail">주소 : ${address}</p>
-                                        <p class="detail">지번 : ${address_b}</p>
-                                    </div>
+                                    <div class="like">                                
+                                      <p type="button" onclick="clickLike(${num},${like})" class="like-logo">👍</p>
+                                      <p class="like-num">${like}</p>    
+                                    </div>                                    
                                   </div>
+                                    <div class="card-body">
+                                      <p class="detail">카테고리 : ${category}</p>
+                                      <p class="detail">한줄평 : ${comment}</p>
+                                      <div class="card-footer">
+                                        <small class="text-muted">${information_html}</small>
+                                      </div>
+                                    </div>                                  
                                 </div>
                               </div>`
-            $('#cards-box').append(temp_html)
-          }
-          const details = document.querySelectorAll('.col');
-          details.forEach(function (detail) {
-            const btn = detail.querySelector('.card');
-            btn.addEventListener('click', function () {
 
-              // 아래는 다른 창이 열렸을 때 기존 창을 닫는 구문 추가
+            $('#cards-box').append(temp_html);
+            $('.card-footer').hide();
+          });
+        });
+    }
 
-              // details.forEach(function (item) {
-              //   if (item !== detail)
-              //     item.classList.remove('show-detail')
-              // })
 
-              // 다른 창이 눌리면 각 class 셀렉터 별로 1번씩 반복하여 if 구문을 실행하기 때문에 
-              //결국 click된 class를 제외하고는 if문 조건이 참이되어 .show-detail를 삭제
-
-              detail.classList.toggle('show-detail')
-
-            })
-          })
+    function clickLike(num, like) {
+      $.ajax({
+        type: 'POST',
+        url: '/restaurant/like',
+        data: { num_give: num, like_give: like },
+        success: function (response) {
+          listing();
         }
       })
     }

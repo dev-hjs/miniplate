@@ -7,7 +7,7 @@ import certifi
 
 ca = certifi.where()
 
-client = MongoClient('mongodb+srv://test:sparta@cluster0.0hxfvkf.mongodb.net/Cluster0?retryWrites=true&w=majority', tlsCAFile=ca)
+client = MongoClient('mongodb+srv://test:<password>@cluster0.0hxfvkf.mongodb.net/Cluster0?retryWrites=true&w=majority', tlsCAFile=ca)
 db = client.dbsparta
 
 @app.route('/')
@@ -15,8 +15,7 @@ def home():
    return render_template('index.html')
 
 @app.route("/restaurant", methods=["POST"]) 
-def restaurant_post():
-    
+def restaurant_post():    
     url_receive = request.form['url_give']
     star_receive = request.form['star_give']
     comment_receive = request.form['comment_give']
@@ -31,24 +30,39 @@ def restaurant_post():
 
     name = soup.select_one('h1[class="restaurant_name"]').text
     image = soup.select_one('img[class="center-croping"]')["src"]    
-    # time = soup.select_one('body > main > article > div.column-wrapper > div.column-contents > div > section.restaurant-detail > table > tbody > tr:nth-child(5) > td').text
-    # day_off = soup.select_one('body > main > article > div.column-wrapper > div.column-contents > div > section.restaurant-detail > table > tbody > tr:nth-child(6) > td').text
     address = soup.select_one('body > main > article > div.column-wrapper > div.column-contents > div > section.restaurant-detail > table > tbody > tr.only-desktop > td').text
-    restaurant_list = list(db.restaurant.find({},{'_id':False}))
-    num = len(restaurant_list) + 1
+    information = soup.select('body > main > article > div.column-wrapper > div.column-contents > div > section.restaurant-detail > table > tbody > tr')
+    num = len(list(db.restaurant.find({},{'_id':False})))
     doc = {
         'image':image,
         'name':name,
-        # 'time' : time,
-        # 'day_off': day_off,
         'address' : address,
         'category':category_receive,
         'star':star_receive,
         'comment':comment_receive,
-        'id': num
+        'information': [],
+        'like' : 0,
+        'num' : num +1
     }
+    
+    for infs in information:
+        if infs.select_one('th').text != "웹 사이트" and infs.select_one('th').text != "메뉴" :
+            th = infs.select_one('th').text
+            td = infs.select_one('td').text.strip("\n")
+            doc['information'].append({
+                th: td,
+            })
+
     db.restaurant.insert_one(doc)
     return jsonify({'msg':'작성완료'})
+
+@app.route("/restaurant/like", methods=["POST"]) 
+def restaurant_like():
+    num_receive = request.form['num_give']
+    like_receive = request.form['like_give']
+
+    db.restaurant.update_one({'num': int(num_receive) },{'$set': {'like' : int(like_receive) + 1 }})
+    return jsonify({'msg':'좋아요'})
 
 
 @app.route("/restaurant", methods=["GET"])
