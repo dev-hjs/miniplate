@@ -150,21 +150,29 @@
       });
     }
     function open_box() {
-      $("#post-box").toggle();
+      $(".modal").show();
     }
     function close_box() {
-      $("#post-box").hide();
+      $(".modal").hide();
     }
 
   </script>
 </head>
 
 <body>
+  <nav class="navbar bg-body-tertiary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="https://mp-seoul-image-production-s3.mangoplate.com/web/resources/mangoplate-logo-horizontal.svg"
+          alt="Logo" width="100" height="24" class="d-inline-block align-text-top">
+      </a>
+    </div>
+  </nav>
   <div class="mytitle">
-    <h1>맛집 추천</h1>
+    <h1>나만의 맛집리스트</h1>
     <button onclick="open_box()">맛집 추가</button>
   </div>
-  <div class="mypost" id="post-box">
+  <!-- <div class="mypost" id="post-box">
     <div class="form-floating mb-3">
       <input id="url" type="email" class="form-control" placeholder="name@example.com" />
       <label>맛집 URL</label>
@@ -203,7 +211,7 @@
       <button onclick="close_box()" type="button" class="btn btn-outline-dark">
         닫기
       </button>
-    </div>
+    </div> -->
   </div>
   <div class="btn-container">
     <button class="filter-btn" type="button" data-id="전체">전체</button>
@@ -215,8 +223,70 @@
     <button class="filter-btn" type="button" data-id="기타">기타</button>
   </div>
   <div class="mycards">
-    <div class="row row-cols-1 row-cols-md-3 g-4" id="cards-box">
+    <div class="row row-cols-1 row-cols-md-4 g-4" id="cards-box">
+  </div>
+  <div class="modal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+          <div class="mypost" id="post-box">
+            <div class="form-floating mb-3">
+              <input
+                id="url"
+                type="email"
+                class="form-control"
+                placeholder="name@example.com"
+              />
+              <label>맛집 URL</label>
+            </div>
+            <div class="input-group mb-3">
+              <label class="input-group-text" for="inputGroupSelect01">카테고리</label>
+              <select class="form-select" id="category">
+                <option selected>-- 선택 --</option>
+                <option value="한식">한식</option>
+                <option value="양식">양식</option>
+                <option value="일식">일식</option>
+                <option value="중식">중식</option>
+                <option value="분식">분식</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+            <div class="input-group mb-3">
+              <label class="input-group-text" for="inputGroupSelect01">별점</label>
+              <select class="form-select" id="star">
+                <option selected>-- 선택 --</option>
+                <option value="1">⭐</option>
+                <option value="2">⭐⭐</option>
+                <option value="3">⭐⭐⭐</option>
+                <option value="4">⭐⭐⭐⭐</option>
+                <option value="5">⭐⭐⭐⭐⭐</option>
+              </select>
+            </div>
+            <div class="form-floating">
+              <textarea
+                id="comment"
+                class="form-control"
+                placeholder="Leave a comment here"
+              ></textarea>
+              <label for="floatingTextarea2">코멘트</label>
+            </div>
+            <div class="mybtns">
+              <button onclick="posting()" type="button" class="btn btn-dark">
+                등록하기
+              </button>
+              <button
+                onclick="close_box()"
+                type="button"
+                class="btn btn-outline-dark"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+      </div>
     </div>
+  </div>
+
 </body>
 
 </html>
